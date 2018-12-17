@@ -1,0 +1,12 @@
+----merge location with transaction so that transaction would have location category name 
+create table ds.public.transaction_with_location_v3 as
+select TXN, a.source, a.timestamp,a.device_id_hashed,a.campaign_id,a.campaign_name,
+a.lat transaction_lat, a.long transaction_long, a.mgrs transaction_mgrs,
+b.lat agg_lat, b.long agg_long, b.mgrs aa_mgrs,
+b.category_name, b.displayed_name
+from etl.public.transactions a
+join ds.public.npi_aggdata_mgrs b
+    on substring(trim(a.mgrs,'""'),1,5)=substring(trim(b.mgrs,'""'),1,5)
+where substring(trim(a.mgrs,'""'),6,2)=substring(trim(b.mgrs,'""'),6,2)
+    and substring(trim(a.mgrs,'""'),11,2)=substring(trim(b.mgrs,'""'),11,2)
+    and HAVERSINE( a.lat, a.long, b.lat, b.long )<0.15;
